@@ -1,0 +1,86 @@
+
+translate = require "localization.translate"
+
+local translations = require "localization.translations"
+
+local LANGUAGES = { "en", "de" }
+
+function init(self)
+	self.language_index = 0
+	translate.add_translations(translations)
+end
+
+function on_message(self, message_id, message, sender)
+	--	print_message("main", message_id, message)
+
+	if message_id == hash("language - change") then
+		translate.change_language(message.language)
+		msg.post("/UserInterface#MainMenu", "language - has_changed")
+		-- other scripts?
+	end
+end
+
+-- GLOBAL FUNCTIONS
+
+function split_string(arraystring, separator)
+	if separator == nil then
+		separator = "%s"
+	end
+	local t = {}
+	for str in string.gmatch(arraystring, "([^"..separator.."]+)") do
+		table.insert(t, str)
+	end
+	return t
+end
+
+function fornat_time(timeinseconds)
+	if timeinseconds == nil then
+		return ""
+	else
+		local seconds = timeinseconds
+		local minutes = math.floor(seconds / 60)
+		local hours = math.floor(seconds / 3600)
+		seconds = math.fmod(seconds, 60)
+		minutes = math.fmod(minutes, 60)
+		return hours .. ":" .. string.format("%02d", minutes) .. ":" .. string.format("%02d", seconds)
+	end
+end
+
+function print_message(scriptname, message_id, message)
+	local s = scriptname .. " > "
+	if message_id ~= nil then
+		s = s .. message_id
+	end
+	if message ~= nil then
+		s = s .. ", " .. concat_table(message)
+	end
+	print (s)
+end
+
+function print_table(table)
+	print (concat_table(table))
+end
+
+function concat_table(table)
+	local s = ""
+	if table ~= nil then
+		if type(table) == "table" then
+			for key, value in pairs(table) do
+				if type(value) == "table" then
+					s = s .. ", " .. key .. " = { " .. concat_table(value) .. " }"
+				elseif type(value) == "boolean" then
+					if value then
+						s = s .. ", " .. key .. " = " .. "true"
+					else
+						s = s .. ", " .. key .. " = " .. "false"
+					end
+				else
+					s = s .. ", " .. key .. " = " .. value
+				end
+			end
+		else
+			return table
+		end
+	end
+	return string.sub(s, 3, 999)
+end

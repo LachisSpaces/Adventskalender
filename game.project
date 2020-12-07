@@ -1,0 +1,24 @@
+[bootstrap]
+main_collection = /game/main/main.collectionc
+
+[script]
+shared_state = 1
+
+[display]
+width = 960
+height = 540
+
+[android]
+input_method = HiddenInputField
+
+[project]
+title = Adventskalender
+dependencies = https://github.com/britzl/defold-input/archive/master.zip,https://api.playfab.com/sdks/download/defold,https://github.com/britzl/ludobits/archive/6.9.1.zip
+
+[html5]
+scale_mode = fit
+cssfile = /builtins/manifests/web/dark_theme.css
+show_made_with_defold = 0
+splash_image = /assets/images/Title.png
+show_fullscreen_button = 0
+

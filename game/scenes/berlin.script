@@ -1,0 +1,59 @@
+local title_data = require "playfab.title_data"
+local user_data = require "playfab.user_data"
+
+local hx = require "scripts.hashes"
+
+function init(self)
+	-- Position the trees
+	local hlp = title_data.get("TreePositions", "")
+	local treePositions = split_string(hlp, " ")
+	for k,v in ipairs(treePositions) do
+		local treePosition = split_string(v, ",")
+		local zOrder = 0.1
+		local treeIndex = tonumber(treePosition[3])
+		if treeIndex > 9 then
+			treeIndex = treeIndex - 10
+			zOrder = 0.6
+		end
+		local position = vmath.vector3(treePosition[1], treePosition[2], zOrder)
+		local treeInfo = tree_getDefaultProperties(treeIndex)
+		local i = collectionfactory.create("#Trees", position, nil, { [hash("/Tree")] = treeInfo } )
+	end
+	-- Position the items
+	local itemIndex = 0
+	hlp = title_data.get("PresentInformation", "")
+	local presentList = split_string(hlp, " ")
+	for k,v in ipairs(presentList) do
+		local itemClass = hx.ItemClass_Present
+		local presentInfo = split_string(v, ",")
+		local itemPositionX = tonumber(presentInfo[1])
+		local itemPositionY = tonumber(presentInfo[2])
+		local presentColor = tonumber(presentInfo[3])
+		local itemNumber = 0
+		local zOrder = 0.7
+		itemIndex = itemIndex + 1
+		local presentStatus = user_data.get("Present"..itemIndex, "nothing")
+		if presentStatus ~= "nothing" then
+			local content = split_string(presentStatus, ",")
+			itemPositionX = tonumber(content[1])
+			itemPositionY = tonumber(content[2])
+			itemNumber = tonumber(content[3])
+			if itemNumber > 0 then
+				itemClass = hx.ItemClass_Item
+				zOrder = 0.8
+			end
+		end
+		local position = vmath.vector3(itemPositionX, itemPositionY, zOrder)
+		local itemInfo = item_getDefaultProperties(itemClass, itemNumber, itemIndex, presentColor)
+		local i = collectionfactory.create("#Items", position, nil, { [hash("/Item")] = itemInfo } )
+	end
+end
+
+function tree_getDefaultProperties(itemIndex) 
+	return { index = itemIndex }
+end
+
+function item_getDefaultProperties(itemClass, itemClassNumber, itemIndex, itemColor) 
+	return { class = itemClass, itemNumber = itemClassNumber, index = itemIndex, color = itemColor }
+	--	return { object = hx.Undefined, objectUrl = msg.url(), cardpool = hx.Undefined, status = hx.Undefined, gridColumn = gridColumn, cardType = hx.Undefined, statType = hx.Undefined, class = hx.Undefined, value = 0, bonusType = hx.Undefined, bonusPoints = 0/0, newPosition = vmath.vector3() }
+end

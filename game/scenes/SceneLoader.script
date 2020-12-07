@@ -1,0 +1,40 @@
+
+function init(self)
+	self.currentScene = "none"
+	self.initialValues = {}
+	msg.post(".", "acquire_input_focus") 
+end
+
+function final(self)
+	msg.post(".", "release_input_focus")
+end
+
+function on_message(self, message_id, message, sender)
+--	print_message("SceneLoader", message_id, message)
+	
+	if message_id == hash("scene - load") then
+		-- the race scene should be loaded
+		self.currentScene = "#Proxy_Scene"
+		self.initialValues = message
+		self.loader = sender 
+		msg.post(self.currentScene, "load")
+
+	elseif message_id == hash("proxy_loaded") then
+		-- generic response from proxy
+		msg.post(sender, "init")
+		msg.post(sender, "enable")
+		msg.post(self.loader, "scene - loaded")
+
+	elseif message_id == hash("scene - unload") then
+		-- the scene should be unloaded
+		self.unloader = sender 
+		msg.post(self.currentScene, "disable")
+		msg.post(self.currentScene, "final")
+		msg.post(self.currentScene, "unload")
+
+	elseif message_id == hash("proxy_unloaded") then
+		-- generic response from proxy
+		--msg.post(self.unloader, "scene - unloaded") -- not possible because unload is called from the scene
+
+	end
+end

@@ -1,0 +1,66 @@
+local user_data = require "playfab.user_data"
+
+local hx = require "scripts.hashes"
+
+go.property("class", hash("undefined"))
+go.property("itemNumber", 0)
+go.property("index", 0)
+go.property("color", 0)
+
+local function refresh(self)
+	if self.class == hx.ItemClass_Present then
+		if self.color == 10 then
+			msg.post("#sprite", "play_animation", { id = hash("present10")})
+		else
+			msg.post("#sprite", "play_animation", { id = hash("present0" .. self.color)})
+		end
+		label.set_text("#Title", self.index)
+	else
+		msg.post("#sprite", "play_animation", { id = hash("Item" .. self.itemNumber)})
+		label.set_text("#Title", "")
+	end
+end
+
+function init(self)
+	refresh(self)
+end
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("pressed") then
+		if self.class == hx.ItemClass_Present then
+			local t = os.date('*t')
+			if self.index <= t["day"] then
+				self.class = hx.ItemClass_Item
+				local itemList = user_data.get("ItemList", "nothing")
+				local itemArray = split_string(itemList)
+				local max = table.maxn(itemArray)
+				math.randomseed(os.time()) 
+				local index = math.random(max)
+				self.itemNumber = itemArray[index]
+				table.remove(itemArray, index)
+				local hlp = ""
+				local count = 0
+				for k,v in ipairs(itemArray) do
+					if count == 0 then
+						hlp = v
+					else
+						hlp = hlp .. " " .. v
+					end
+					count = count + 1
+				end
+				user_data.set("ItemList", hlp)
+				local pos = go.get_position()
+				pos.z = 0.8
+				go.set_position(pos)
+				saveItemInfo(self, pos)
+				refresh(self)
+			end
+		end
+	elseif message_id == hash("drag_end") then
+		saveItemInfo(self, go.get_position())
+	end
+end
+
+function saveItemInfo(self, position)
+	user_data.set("Present"..self.index, position.x .. "," .. position.y .. "," .. self.itemNumber)
+end
